@@ -1,0 +1,38 @@
+kind: Pod
+apiVersion: v1
+metadata:
+  name: rabbitmq
+  labels:
+    app: rabbitmq
+    role: message-bus
+spec:
+  volumes:
+    - name: erlang-cookie-secret
+      secret:
+        secretName: erlang-cookie
+    - name: bigcouch-admin-secret
+      secret:
+        secretName: bigcouch-admin-secret
+  containers:
+    - name: rabbitmq
+      image: callforamerica/bigcouch
+      imagePullPolicy: Always
+      volumeMounts:
+        - name: erlang-cookie-secret
+          readOnly: true
+          mountPath: /etc/secrets/erlang
+        - name: bigcouch-admin-secret
+          readOnly: true
+          mountPath: /etc/secrets/bigcouch
+      ports:
+        - name: data
+          protocol: TCP
+          containerPort: 5984
+        - name: admin
+          protocol: TCP
+          containerPort: 5986
+    - name: epmd
+      image: callforamerica/epmd
+    - name: dns
+      image: callforamerica/go-dnsmasq
+  restartPolicy: Always

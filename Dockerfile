@@ -23,7 +23,7 @@ COPY    entrypoint /usr/bin/entrypoint
 
 ENV     KUBERNETES_HOSTNAME_FIX=true
 
-VOLUME  ["/opt/bigcouch/var/lib"]
+VOLUME  ["/var/lib/bigcouch"]
 
 EXPOSE  4369 5984 5986 11500-11999
 
