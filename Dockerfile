@@ -1,0 +1,34 @@
+FROM philcryer/min-wheezy:latest
+
+MAINTAINER joe <joe@valuphone.com>
+
+LABEL   os="linux" \
+        os.distro="debian" \
+        os.version="wheezy"
+
+LABEL   lang.name="erlang" \
+        lang.version="1.1.1"
+
+LABEL   app.name="bigcouch" \
+        app.version="3.6.0"
+
+ENV     TERM=xterm \
+        HOME=/opt/bigcouch \
+        PATH=/opt/bigcouch/bin:$PATH
+
+COPY    setup.sh /tmp/setup.sh
+RUN     /tmp/setup.sh
+
+COPY    entrypoint /usr/bin/entrypoint
+
+ENV     KUBERNETES_HOSTNAME_FIX=true
+
+VOLUME  ["/opt/bigcouch/var/lib"]
+
+EXPOSE  4369 5984 5986 11500-11999
+
+# USER    bigcouch
+
+WORKDIR /opt/bigcouch
+
+CMD     ["/usr/bin/entrypoint"]
