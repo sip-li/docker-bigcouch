@@ -1,10 +1,10 @@
 kind: Pod
 apiVersion: v1
 metadata:
-  name: rabbitmq
+  name: bigcouch
   labels:
-    app: rabbitmq
-    role: message-bus
+    app: bigcouch
+    role: document-db
 spec:
   volumes:
     - name: erlang-cookie-secret
@@ -14,7 +14,7 @@ spec:
       secret:
         secretName: bigcouch-admin-secret
   containers:
-    - name: rabbitmq
+    - name: bigcouch
       image: callforamerica/bigcouch
       imagePullPolicy: Always
       volumeMounts:

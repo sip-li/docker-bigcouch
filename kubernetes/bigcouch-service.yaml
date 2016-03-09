@@ -1,0 +1,15 @@
+kind: Service
+apiVersion: v1
+metadata: 
+  name: bigcouch
+spec:
+  selector:
+    app: bigcouch
+    project: valuphone
+  ports:
+    - name: data
+      protocol: TCP
+      port: 5984
+    - name: admin
+      protocol: TCP
+      port: 5986
