@@ -7,10 +7,10 @@ LABEL   os="linux" \
         os.version="wheezy"
 
 LABEL   lang.name="erlang" \
-        lang.version="1.1.1"
+        lang.version="18.1"
 
 LABEL   app.name="bigcouch" \
-        app.version="3.6.0"
+        app.version="1.1.1"
 
 ENV     TERM=xterm \
         HOME=/opt/bigcouch \
