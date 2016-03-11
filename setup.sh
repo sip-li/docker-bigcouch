@@ -62,6 +62,19 @@ fi
 EOF
 chmod +x /opt/bigcouch/bin/hostname-fix
 
+echo "Writing .bashrc ..."
+tee ~/.bashrc <<'EOF'
+#!/bin/bash
+
+if [ "$BIGCOUCH_USE_LONGNAME" == true ]; then
+    export HOSTNAME=$(hostname -f)
+else
+    export HOSTNAME=$(hostname)
+fi
+EOF
+chown bigcouch:bigcouch ~/.bashrc
+
+
 mkdir -p /var/lib/bigcouch /var/log/bigcouch
 
 echo "Setting Ownership & Permissions ..."

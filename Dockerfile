@@ -21,7 +21,8 @@ RUN     /tmp/setup.sh
 
 COPY    entrypoint /usr/bin/entrypoint
 
-ENV     KUBERNETES_HOSTNAME_FIX=true
+ENV     KUBERNETES_HOSTNAME_FIX=true \
+        BIGCOUCH_USE_LONGNAME=true
 
 VOLUME  ["/var/lib/bigcouch"]
 

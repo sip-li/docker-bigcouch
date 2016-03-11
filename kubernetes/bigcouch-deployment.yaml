@@ -1,10 +1,7 @@
-apiVersion: v1
-kind: ReplicationController
+apiVersion: extensions/v1beta1
+kind: Deployment
 metadata:
   name: bigcouch
-  labels:
-    name: bigcouch
-    role: document-db
 spec:
   replicas: 3
   selector:
@@ -15,7 +12,7 @@ spec:
       name: bigcouch
       labels:
         app: bigcouch
-        project: valuphone
+        role: document-db
     spec:
       volumes:
         - name: erlang-cookie-secret
