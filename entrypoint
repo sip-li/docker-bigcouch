@@ -81,13 +81,13 @@ view_index_dir = /var/lib/bigcouch
 
 [chttpd]
 secret = $BIGCOUCH_ADMIN_SECRET
-require_valid_user = true
+require_valid_user = false
 port = $BIGCOUCH_CHTTPD_PORT
 bind_address = $BIGCOUCH_CHTTPD_BINDADDR
 
 [httpd]
 secret = $BIGCOUCH_ADMIN_SECRET
-require_valid_user = true
+require_valid_user = false
 port = $BIGCOUCH_HTTPD_PORT
 bind_address = $BIGCOUCH_HTTPD_BINDADDR
 

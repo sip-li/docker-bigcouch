@@ -18,4 +18,9 @@ Only the root user can modify /etc/hosts in a docker container because ownership
 
 If anyone knows of a better way to do this, please submit a pull request with a short explanation of the process you used.
 
+
+### 2. Bigcouch not picking up admin user created in local.ini config file. 
+
+I don't feel like spending too much time on this because bigcouch is ridiculously obsolete and I doubt CouchDB has this problem.  I don't reccomend running Bigcouch at all if you can help it, run CouchDB instead. 
+
 -Joe
