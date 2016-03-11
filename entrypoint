@@ -87,7 +87,7 @@ bind_address = $BIGCOUCH_CHTTPD_BINDADDR
 
 [httpd]
 secret = $BIGCOUCH_ADMIN_SECRET
-require_valid_user = false
+require_valid_user = true
 port = $BIGCOUCH_HTTPD_PORT
 bind_address = $BIGCOUCH_HTTPD_BINDADDR
 

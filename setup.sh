@@ -56,10 +56,12 @@ echo "Writing .bashrc ..."
 tee ~/.bashrc <<'EOF'
 #!/bin/bash
 
-if [ "$BIGCOUCH_USE_LONGNAME" == true ]; then
-    export HOSTNAME=$(hostname -f)
-else
-    export HOSTNAME=$(hostname)
+if [ "$KUBERNETES_HOSTNAME_FIX" == true ]; then
+    if [ "$BIGCOUCH_USE_LONGNAME" == true ]; then
+        export HOSTNAME=$(hostname -f)
+    else
+        export HOSTNAME=$(hostname)
+    fi
 fi
 EOF
 chown bigcouch:bigcouch ~/.bashrc
