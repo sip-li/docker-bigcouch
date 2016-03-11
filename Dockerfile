@@ -1,13 +1,10 @@
-FROM philcryer/min-wheezy:latest
+FROM centos:6
 
 MAINTAINER joe <joe@valuphone.com>
 
 LABEL   os="linux" \
-        os.distro="debian" \
-        os.version="wheezy"
-
-LABEL   lang.name="erlang" \
-        lang.version="18.1"
+        os.distro="centos" \
+        os.version="6"
 
 LABEL   app.name="bigcouch" \
         app.version="1.1.1"

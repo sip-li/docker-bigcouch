@@ -1,34 +1,24 @@
 #!/bin/bash
 
-export DEBIAN_FRONTEND=noninteractive
 
-echo "Adding repositories ..."
-
-echo "deb http://packages.cloudant.com/debian squeeze main" > /etc/apt/sources.list.d/cloudant.list
-echo "deb http://httpredir.debian.org/debian squeeze-lts main" > /etc/apt/sources.list.d/squeeze.list
-echo "deb http://httpredir.debian.org/debian wheezy-backports main contrib non-free" > /etc/apt/sources.list.d/wheezy-backports.list
-
-
-echo "Adding gpg key ..."
-apt-key adv --keyserver keyserver.ubuntu.com --recv-key 59E01FBD15BE8E26
-
-apt-get update -y
-apt-get install -y adduser
+echo "Adding cloudant repo ..."
+cat <<'EOF' > /etc/yum.repos.d/cloudant.repo
+[cloudant]
+name=Cloudant Repo
+baseurl=http://packages.cloudant.com/rpm/$releasever/$basearch
+enabled=1
+gpgcheck=0
+EOF
 
 
 echo -e "Creating user and group for bigcouch ..."
 groupadd bigcouch
 useradd --home-dir /opt/bigcouch --shell /bin/bash --comment 'bigcouch user' -g bigcouch --create-home bigcouch
 
-usermod -G bigcouch bigcouch
-usermod -G bigcouch root
-
 
 echo "Installing Bigcouch ..."
-apt-get install -y bigcouch
-
-usermod -g daemon bigcouch
-chown -R bigcouch:daemon /opt/bigcouch
+yum -y update
+yum -y install bigcouch
 
 
 echo "Writing Hostname override fix ..."
@@ -60,7 +50,7 @@ else
     short
 fi
 EOF
-chmod +x /opt/bigcouch/bin/hostname-fix
+chmod +x ~/bin/hostname-fix
 
 echo "Writing .bashrc ..."
 tee ~/.bashrc <<'EOF'
@@ -77,6 +67,7 @@ chown bigcouch:bigcouch ~/.bashrc
 
 mkdir -p /var/lib/bigcouch /var/log/bigcouch
 
+
 echo "Setting Ownership & Permissions ..."
 chown -R bigcouch:bigcouch /opt/bigcouch /var/lib/bigcouch /var/log/bigcouch
 chmod -R 0775 /opt/bigcouch
@@ -89,5 +80,5 @@ chmod -R 0777 /var/log/bigcouch
 
 
 echo "Cleaning up ..."
-apt-get clean all
+yum clean all
 rm -r /tmp/setup.sh
