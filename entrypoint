@@ -71,10 +71,10 @@ fi
 
 echo "Writing local.ini file ..."
 rm -f /opt/bigcouch/etc/local.ini
-tee /opt/bigcouch/etc/local.ini <<EOF
-[admins]
-admin = $BIGCOUCH_ADMIN_SECRET
 
+# [admins]
+# admin = $BIGCOUCH_ADMIN_SECRET
+tee /opt/bigcouch/etc/local.ini <<EOF
 [couchdb]
 database_dir = /var/lib/bigcouch
 view_index_dir = /var/lib/bigcouch

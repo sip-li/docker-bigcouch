@@ -42,7 +42,7 @@ push:
 	@git push origin master
 
 shell:
-	@docker exec -ti $(NAME) /bin/ash
+	@docker exec -ti $(NAME) /bin/bash
 
 run:
 	@docker run -it --rm --name $(NAME) -e "KUBERNETES_HOSTNAME_FIX=true" --entrypoint bash $(LOCAL_TAG)
