@@ -48,6 +48,25 @@ if [ -n "$KUBERNETES_HOSTNAME_FIX" ]; then
     echo "127.0.0.1    $HOSTNAME" >> /etc/hosts
 fi
 
+if [ "$KUBERNETES_USE_PERSISTENT_VOLUME" == true ]; then
+    PERSISTENT_VOLUME_NAME=${PERSISTENT_VOLUME_NAME:-bigcouch-data}
+    PERSISTENT_HOST_PATH="/mnt/$PERSISTENT_VOLUME_NAME/$(env hostname)"
+    BIGCOUCH_DATA_PATH=${BIGCOUCH_DATA_PATH:-/var/lib/bigcouch/data}
+
+    echo -e "Using Persistent Volume ...
+    name: $PERSISTENT_VOLUME_NAME
+    host: $(env hostname)
+    host-path: $PERSISTENT_HOST_PATH
+    bigcouch-data-path: $BIGCOUCH_DATA_PATH 
+    "
+    # ensure our host path exists
+    mkdir -p $PERSISTENT_HOST_PATH
+    # link to our slice
+    ln -sf $PERSISTENT_HOST_PATH $BIGCOUCH_DATA_PATH
+    chown -R bigcouch:bigcouch $PERSISTENT_HOST_PATH
+    chmod -R 0755 $PERSISTENT_HOST_PATH
+fi
+
 echo "Writing vm.args file ..."
 tee /opt/bigcouch/etc/vm.args <<EOF
 -name $ERLANG_NODE@$(env hostname -f)
@@ -74,10 +93,13 @@ rm -f /opt/bigcouch/etc/local.ini
 
 # [admins]
 # admin = $BIGCOUCH_ADMIN_SECRET
+
+BIGCOUCH_DATA_PATH=${BIGCOUCH_DATA_PATH:-/var/lib/bigcouch}
+
 tee /opt/bigcouch/etc/local.ini <<EOF
 [couchdb]
-database_dir = /var/lib/bigcouch
-view_index_dir = /var/lib/bigcouch
+database_dir = $BIGCOUCH_DATA_PATH
+view_index_dir = $BIGCOUCH_DATA_PATH
 
 [chttpd]
 secret = $BIGCOUCH_ADMIN_SECRET

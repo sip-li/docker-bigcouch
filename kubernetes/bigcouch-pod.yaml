@@ -13,6 +13,9 @@ spec:
     - name: bigcouch-admin-secret
       secret:
         secretName: bigcouch-admin-secret
+    - name: bigcouch-data
+      persistentVolumeClaim:
+        claimName: bigcouch-data
   containers:
     - name: bigcouch
       image: callforamerica/bigcouch
@@ -24,6 +27,11 @@ spec:
         - name: bigcouch-admin-secret
           readOnly: true
           mountPath: /etc/secrets/bigcouch
+        - name: bigcouch-data
+          mountPath: /mnt/bigcouch-data
+      env:
+        - name: KUBERNETES_USE_PERSISTENT_VOLUME
+          value: 'true'
       ports:
         - name: data
           protocol: TCP
