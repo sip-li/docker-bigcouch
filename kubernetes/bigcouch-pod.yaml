@@ -5,6 +5,7 @@ metadata:
   labels:
     app: bigcouch
     role: document-db
+    project: dev
 spec:
   volumes:
     - name: erlang-cookie-secret
@@ -39,6 +40,6 @@ spec:
         - name: admin
           protocol: TCP
           containerPort: 5986
-    - name: dns
-      image: callforamerica/go-dnsmasq
+    # - name: dns
+    #   image: callforamerica/go-dnsmasq
   restartPolicy: Always
