@@ -2,11 +2,8 @@ apiVersion: v1
 kind: ReplicationController
 metadata:
   name: bigcouch
-  labels:
-    name: bigcouch
-    role: document-db
 spec:
-  replicas: 3
+  replicas: 1
   selector:
     app: bigcouch
     project: valuphone
@@ -16,6 +13,7 @@ spec:
       labels:
         app: bigcouch
         project: valuphone
+        role: document-db
     spec:
       volumes:
         - name: erlang-cookie-secret
@@ -24,6 +22,9 @@ spec:
         - name: bigcouch-admin-secret
           secret:
             secretName: bigcouch-admin-secret
+        - name: bigcouch-data
+          persistentVolumeClaim:
+            claimName: bigcouch-data
       containers:
         - name: bigcouch
           image: callforamerica/bigcouch
@@ -35,6 +36,11 @@ spec:
             - name: bigcouch-admin-secret
               readOnly: true
               mountPath: /etc/secrets/bigcouch
+            - name: bigcouch-data
+              mountPath: /mnt/bigcouch-data
+          env:
+            - name: KUBERNETES_USE_PERSISTENT_VOLUME
+              value: 'true'
           ports:
             - name: data
               protocol: TCP
@@ -42,6 +48,25 @@ spec:
             - name: admin
               protocol: TCP
               containerPort: 5986
-        - name: dns
-          image: callforamerica/go-dnsmasq
+          resources:
+            requests:
+              cpu: 2
+              memory: 2G
+            # limits:
+            #   cpu: 2
+            #   memory: 4G
+          readinessProbe:
+            httpGet:
+              path: /_stats
+              port: 5986
+            initialDelaySeconds: 30
+            timeoutSeconds: 5
+          livenessProbe:
+            httpGet:
+              path: /_stats
+              port: 5986
+            initialDelaySeconds: 30
+            timeoutSeconds: 5
+        # - name: dns
+        #   image: callforamerica/go-dnsmasq
       restartPolicy: Always

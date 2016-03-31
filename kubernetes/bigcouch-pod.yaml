@@ -4,8 +4,8 @@ metadata:
   name: bigcouch
   labels:
     app: bigcouch
+    project: valuphone
     role: document-db
-    project: dev
 spec:
   volumes:
     - name: erlang-cookie-secret
@@ -40,6 +40,25 @@ spec:
         - name: admin
           protocol: TCP
           containerPort: 5986
+      resources:
+        requests:
+          cpu: 1
+          memory: 2G
+        # limits:
+        #   cpu: 2
+        #   memory: 4G
+      readinessProbe:
+        httpGet:
+          path: /_stats
+          port: 5984
+        initialDelaySeconds: 30
+        timeoutSeconds: 5
+      livenessProbe:
+        httpGet:
+          path: /_stats
+          port: 5984
+        initialDelaySeconds: 30
+        timeoutSeconds: 5
     # - name: dns
     #   image: callforamerica/go-dnsmasq
   restartPolicy: Always
