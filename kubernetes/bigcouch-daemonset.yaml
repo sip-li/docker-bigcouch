@@ -1,21 +1,19 @@
-apiVersion: v1
-kind: ReplicationController
+apiVersion: extensions/v1beta1
+kind: DaemonSet
 metadata:
   name: bigcouch
 spec:
-  replicas: 1
-  selector:
-    app: bigcouch
-    project: valuphone
   template:
     metadata:
       name: bigcouch
       labels:
         app: bigcouch
+        environment: production
         project: valuphone
-        role: document-db
     spec:
-      hostNetwork: true
+      nodeSelector: 
+        kubernetes.io/hostname: adeno.valuphone.com
+      # hostNetwork: true
       volumes:
         - name: erlang-cookie-secret
           secret:
@@ -40,12 +38,10 @@ spec:
             - name: bigcouch-data
               mountPath: /mnt/bigcouch-data
           env:
+            - name: HOST_NETWORK
+              value: 'true'
             - name: KUBERNETES_USE_PERSISTENT_VOLUME
               value: 'true'
-            - name: KUBERNETES_HOSTNAME_FIX
-              value: 'false'
-            - name: BIND_INTERFACE
-              value: bond0
           ports:
             - name: data
               protocol: TCP
@@ -56,10 +52,10 @@ spec:
           resources:
             requests:
               cpu: 2
-              memory: 2G
+              memory: 4G
             # limits:
-            #   cpu: 2
-            #   memory: 4G
+            #   cpu: 
+            #   memory: 
           readinessProbe:
             httpGet:
               path: /_stats
@@ -72,6 +68,4 @@ spec:
               port: 5986
             initialDelaySeconds: 30
             timeoutSeconds: 5
-        # - name: dns
-        #   image: callforamerica/go-dnsmasq
       restartPolicy: Always

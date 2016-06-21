@@ -17,6 +17,8 @@ BIGCOUCH_WRITE_QUORUM=${BIGCOUCH_WRITE_QUORUM:-1}
 BIGCOUCH_REPLICAS=${BIGCOUCH_REPLICAS:-3}
 BIGCOUCH_ZONES=${BIGCOUCH_ZONES:-1}
 
+BIND_ADDR=$(env hostname -i)
+
 # Die on error
 set -e
 
@@ -36,17 +38,17 @@ link_erlang_cookie() {
     fi
 }
 
-get_etcd_host() {
-    local HOST=$(dig +short +search etcd-client)
-    echo -n $HOST
-}
+# get_etcd_host() {
+#     local HOST=$(dig +short +search etcd-client)
+#     echo -n $HOST
+# }
 
-get_etcd_port() {
-    local PORT=$(dig +short +search SRV _etcd-client-port._tcp.etcd-client | awk '{print $3}')
-    echo -n $PORT
-}
+# get_etcd_port() {
+#     local PORT=$(dig +short +search SRV _etcd-client-port._tcp.etcd-client | awk '{print $3}')
+#     echo -n $PORT
+# }
 
-if [ -n "$KUBERNETES_HOSTNAME_FIX" ]; then
+if [ -n "$KUBERNETES_HOSTNAME_FIX" == true ]; then
     echo "Applying kubernetes hostname fix"
     ln -sf /opt/bigcouch/bin/hostname-fix /opt/bigcouch/bin/hostname
     chown bigcouch:bigcouch /opt/bigcouch/bin/hostname
@@ -54,14 +56,23 @@ if [ -n "$KUBERNETES_HOSTNAME_FIX" ]; then
     echo "127.0.0.1    $HOSTNAME" >> /etc/hosts
 fi
 
+if [ -n "$BIND_INTERFACE" ]; then
+    echo "Binding to Interface: $BIND_INTERFACE ..."
+    BIND_ADDR=$(ifconfig $BIND_INTERFACE | grep 'inet ' | awk '{print $2}' | cut -d':' -f2)
+    echo "Bind Addr: $BIND_ADDR"
+    BIGCOUCH_CHTTPD_BINDADDR=$BIND_ADDR
+    BIGCOUCH_HTTPD_BINDADDR=$BIND_ADDR
+fi
+
+
 if [ "$KUBERNETES_USE_PERSISTENT_VOLUME" == true ]; then
     PERSISTENT_VOLUME_NAME=${PERSISTENT_VOLUME_NAME:-bigcouch-data}
-    PERSISTENT_HOST_PATH="/mnt/$PERSISTENT_VOLUME_NAME/$(env hostname)"
+    PERSISTENT_HOST_PATH="/mnt/$PERSISTENT_VOLUME_NAME/$BIND_ADDR"
     BIGCOUCH_DATA_PATH=${BIGCOUCH_DATA_PATH:-/var/lib/bigcouch/data}
 
     echo -e "Using Persistent Volume ...
     name: $PERSISTENT_VOLUME_NAME
-    host: $(env hostname)
+    host: $BIND_ADDR
     host-path: $PERSISTENT_HOST_PATH
     bigcouch-data-path: $BIGCOUCH_DATA_PATH 
     "
