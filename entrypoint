@@ -18,7 +18,7 @@ BIGCOUCH_REPLICAS=${BIGCOUCH_REPLICAS:-3}
 BIGCOUCH_ZONES=${BIGCOUCH_ZONES:-1}
 
 BIND_ADDR=$(env hostname -i)
-
+ERLANG_HOST=$(env hostname -f)
 # Die on error
 set -e
 
@@ -62,6 +62,7 @@ if [ -n "$BIND_INTERFACE" ]; then
     echo "Bind Addr: $BIND_ADDR"
     BIGCOUCH_CHTTPD_BINDADDR=$BIND_ADDR
     BIGCOUCH_HTTPD_BINDADDR=$BIND_ADDR
+    ERLANG_HOST=$BIND_ADDR
 fi
 
 
@@ -86,7 +87,7 @@ fi
 
 echo "Writing vm.args file ..."
 tee /opt/bigcouch/etc/vm.args <<EOF
--name $ERLANG_NODE@$(env hostname -f)
+-name $ERLANG_NODE@$ERLANG_HOST
 -sasl errlog_type $BIGCOUCH_SASL_LOGLEVEL
 +K true
 +A $BIGCOUCH_THREADS
