@@ -6,6 +6,7 @@ spec:
   selector:
     app: bigcouch
     project: valuphone
+    environment: production
   ports:
     - name: data
       protocol: TCP

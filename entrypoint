@@ -4,12 +4,8 @@ BIGCOUCH_SASL_LOGLEVEL=${BIGCOUCH_SASL_LOGLEVEL:-error}
 BIGCOUCH_THREADS=${BIGCOUCH_THREADS:-25}
 BIGCOUCH_LOG_LEVEL=${BIGCOUCH_LOG_LEVEL:-info}
 
-BIGCOUCH_CHTTPD_PORT=${BIGCOUCH_CHTTPD_PORT:-5984}
-BIGCOUCH_CHTTPD_BINDADDR=${BIGCOUCH_CHTTPD_BINDADDR:-0.0.0.0}
-BIGCOUCH_HTTPD_PORT=${BIGCOUCH_HTTPD_PORT:-5986}
-BIGCOUCH_HTTPD_BINDADDR=${BIGCOUCH_HTTPD_BINDADDR:-0.0.0.0}
-
-ERLANG_NODE=${ERLANG_NODE:-bigcouch}
+BIGCOUCH_DATA_PATH=${BIGCOUCH_DATA_PATH:-/var/lib/bigcouch/data}
+BIGCOUCH_BIND_ADDR=${BIGCOUCH_BIND_ADDR:-0.0.0.0}
 
 BIGCOUCH_SHARDS=${BIGCOUCH_SHARDS:-1}
 BIGCOUCH_READ_QUORUM=${BIGCOUCH_READ_QUORUM:-1}
@@ -17,77 +13,31 @@ BIGCOUCH_WRITE_QUORUM=${BIGCOUCH_WRITE_QUORUM:-1}
 BIGCOUCH_REPLICAS=${BIGCOUCH_REPLICAS:-3}
 BIGCOUCH_ZONES=${BIGCOUCH_ZONES:-1}
 
-BIND_ADDR=$(env hostname -i)
-ERLANG_HOST=$(env hostname -f)
-# Die on error
 set -e
 
-# FUNCTIONS
-link_erlang_cookie() {
-    if [ -f '/etc/secrets/erlang/cookie' ]; then
-        echo "Linking Erlang Cookie"
-        yes | cp -rf /etc/secrets/erlang/cookie ~/.erlang.cookie
-        # ln -sf /etc/secrets/erlang/cookie ~/.erlang.cookie
-        chown bigcouch:bigcouch /opt/bigcouch/.erlang.cookie
-        chmod 0600 /opt/bigcouch/.erlang.cookie
-    else
-        echo "*** No Erlang Cookie Mounted! ***"
-        echo insecure-cookie > ~/.erlang.cookie
-        chown bigcouch:bigcouch /opt/bigcouch/.erlang.cookie
-        chmod 0600 /opt/bigcouch/.erlang.cookie
-    fi
-}
 
-# get_etcd_host() {
-#     local HOST=$(dig +short +search etcd-client)
-#     echo -n $HOST
-# }
-
-# get_etcd_port() {
-#     local PORT=$(dig +short +search SRV _etcd-client-port._tcp.etcd-client | awk '{print $3}')
-#     echo -n $PORT
-# }
-
-if [ "$KUBERNETES_HOSTNAME_FIX" == true ]; then
-    echo "Applying kubernetes hostname fix"
-    ln -sf /opt/bigcouch/bin/hostname-fix /opt/bigcouch/bin/hostname
-    chown bigcouch:bigcouch /opt/bigcouch/bin/hostname
-    export HOSTNAME=$(/opt/bigcouch/bin/hostname-fix)
-    echo "127.0.0.1    $HOSTNAME" >> /etc/hosts
-fi
-
-if [ -n "$BIND_INTERFACE" ]; then
-    echo "Binding to Interface: $BIND_INTERFACE ..."
-    BIND_ADDR=$(ifconfig $BIND_INTERFACE | grep 'inet ' | awk '{print $2}' | cut -d':' -f2)
-    echo "Bind Addr: $BIND_ADDR"
-    BIGCOUCH_CHTTPD_BINDADDR=$BIND_ADDR
-    BIGCOUCH_HTTPD_BINDADDR=$BIND_ADDR
-    ERLANG_HOST=$BIND_ADDR
-fi
+mkdir -p /tmp/bigcouch
+chown bigcouch:bigcouch /tmp/bigcouch
 
 
-if [ "$KUBERNETES_USE_PERSISTENT_VOLUME" == true ]; then
-    PERSISTENT_VOLUME_NAME=${PERSISTENT_VOLUME_NAME:-bigcouch-data}
-    PERSISTENT_HOST_PATH="/mnt/$PERSISTENT_VOLUME_NAME/$BIND_ADDR"
-    BIGCOUCH_DATA_PATH=${BIGCOUCH_DATA_PATH:-/var/lib/bigcouch/data}
+if [ "$MOUNT_PERSISTENT_VOLUME" = true ]; then
+    VOLUME_MOUNT_PATH="/mnt/bigcouch-data/$(hostname)"
 
     echo -e "Using Persistent Volume ...
-    name: $PERSISTENT_VOLUME_NAME
-    host: $BIND_ADDR
-    host-path: $PERSISTENT_HOST_PATH
-    bigcouch-data-path: $BIGCOUCH_DATA_PATH 
-    "
-    # ensure our host path exists
-    mkdir -p $PERSISTENT_HOST_PATH
-    # link to our slice
-    ln -sf $PERSISTENT_HOST_PATH $BIGCOUCH_DATA_PATH
-    chown -R bigcouch:bigcouch $PERSISTENT_HOST_PATH
-    chmod -R 0755 $PERSISTENT_HOST_PATH
+    host: $(hostname)
+    volume-mount-path: $VOLUME_MOUNT_PATH
+    bigcouch-data-path: $BIGCOUCH_DATA_PATH"
+
+    mkdir -p $VOLUME_MOUNT_PATH
+    ln -sf $VOLUME_MOUNT_PATH $BIGCOUCH_DATA_PATH
+    chown -R bigcouch:bigcouch $VOLUME_MOUNT_PATH
+    chmod -R 0755 $VOLUME_MOUNT_PATH
 fi
+
 
 echo "Writing vm.args file ..."
 tee /opt/bigcouch/etc/vm.args <<EOF
--name $ERLANG_NODE@$ERLANG_HOST
+-name bigcouch@$(hostname -f)
 -sasl errlog_type $BIGCOUCH_SASL_LOGLEVEL
 +K true
 +A $BIGCOUCH_THREADS
@@ -98,38 +48,38 @@ EOF
 chown bigcouch:bigcouch /opt/bigcouch/etc/vm.args
 chmod 0777 /opt/bigcouch/etc/vm.args
 
+
 if [ -f '/etc/secrets/bigcouch/secret' ]; then
     BIGCOUCH_ADMIN_SECRET=$(cat /etc/secrets/bigcouch/secret)
     echo "Admin secret successfuly read from secret volume file ..."
 else
-    BIGCOUCH_ADMIN_SECRET=some-horrible-default
+    BIGCOUCH_ADMIN_SECRET=insecure-default
     echo "*** No secret file found at /etc/secrets/bigcouch/secret, using insecure backup ***"
 fi
 
-echo "Writing local.ini file ..."
-rm -f /opt/bigcouch/etc/local.ini
 
-# [admins]
-# admin = $BIGCOUCH_ADMIN_SECRET
-
-BIGCOUCH_DATA_PATH=${BIGCOUCH_DATA_PATH:-/var/lib/bigcouch}
+echo "Rewriting local.ini file ..."
+[ -f /opt/bigcouch/etc/local.ini ] && rm -f /opt/bigcouch/etc/local.ini
 
 tee /opt/bigcouch/etc/local.ini <<EOF
 [couchdb]
 database_dir = $BIGCOUCH_DATA_PATH
 view_index_dir = $BIGCOUCH_DATA_PATH
 
+[admins]
+couch_admin = $BIGCOUCH_ADMIN_SECRET
+
 [chttpd]
 secret = $BIGCOUCH_ADMIN_SECRET
 require_valid_user = false
-port = $BIGCOUCH_CHTTPD_PORT
-bind_address = $BIGCOUCH_CHTTPD_BINDADDR
+port = 5986
+bind_address = $BIGCOUCH_BIND_ADDR
 
 [httpd]
 secret = $BIGCOUCH_ADMIN_SECRET
 require_valid_user = false
-port = $BIGCOUCH_HTTPD_PORT
-bind_address = $BIGCOUCH_HTTPD_BINDADDR
+port = 5984
+bind_address = $BIGCOUCH_BIND_ADDR
 
 [cluster]
 q=$BIGCOUCH_SHARDS
@@ -143,16 +93,23 @@ file = /var/log/bigcouch/bigcouch.log
 level = $BIGCOUCH_LOG_LEVEL
 EOF
 
-mkdir -p /tmp/bigcouch
-chown bigcouch:bigcouch /tmp/bigcouch
 
-echo "linking erlang cookie"
-link_erlang_cookie
+if [ -f '/etc/secrets/erlang/cookie' ]; then
+    echo "Linking Erlang Cookie"
+    yes | cp -rf /etc/secrets/erlang/cookie ~/.erlang.cookie
+else
+    echo "*** No Erlang Cookie Mounted! ***"
+    echo insecure-cookie > ~/.erlang.cookie
+fi
+chown bigcouch:bigcouch /opt/bigcouch/.erlang.cookie
+chmod 0600 /opt/bigcouch/.erlang.cookie
+
 
 echo "Ensuring Permissions"
 chown -R bigcouch:bigcouch /var/lib/bigcouch
 chmod -R 0755 /opt/bigcouch /var/lib/bigcouch
 chmod 0600 ~/.erlang.cookie
+
 
 cd ~
     echo "Starting Bigcouch ..."

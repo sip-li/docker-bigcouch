@@ -38,10 +38,10 @@ spec:
             - name: bigcouch-data
               mountPath: /mnt/bigcouch-data
           env:
-            - name: KUBERNETES_USE_PERSISTENT_VOLUME
+            - name: MOUNT_PERSISTENT_VOLUME
               value: 'true'
-            - name: KUBERNETES_HOSTNAME_FIX
-              value: 'false'
+            # - name: KUBERNETES_HOSTNAME_FIX
+            #   value: 'false'
             # - name: BIND_INTERFACE
             #   value: bond0
           ports:

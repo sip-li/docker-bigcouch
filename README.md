@@ -2,25 +2,19 @@
 
 CouchDB with enhancements for clustering performance, for use in a kubernetes pod.
 
+Now using a register-service init-container for automatic registration with the cluster
+
+## Directions
+
+* Create the necessary secrets listed in `bigcouch-petset.yaml`
+* Create the PersistentVolumes in `bigcouch-pvs.yaml`
+* Create the PersistentVolumeClaims in `bigcouch-pvcs.yaml`
+* Create the Service in `bigcouch-service.yaml`
+* Create the petset in `bigcouch-service.yaml`
+
+
 ## Issues
 
-### 1. Kubernetes Pod hostname's do not reflect it's PodIP assigned DNS. 
-
-The hack I've done to work around this requires root privileges at runtime, effectively breaking the ability to set a non root user in the dockerfile.  `USER couchdb` has been commented out in the dockerfile for this reason.
-
-Docker by design does not allow you to change the hostname of a container after creation.  It also manages the /etc/hosts file, which means chown's in the docker build process are set back to root again when a container is created.
-
-EPMD requires that the environment variable: HOSTNAME and the executable: `env hostname` return a correct and resolvable hostname.
-
-I've fixed this by creating a dummy hostname bash script and place it at the beginning of the path: '/opt/bigcouch/bin/hostname-fix'.  In the entrypoint script, if `KUBERNETES_HOSTNAME_FIX` is set, this script is linked at runtime to '/opt/bigcouch/sbin/hostname', and the environment variable `HOSTNAME` is set correctly, as well as creating an entry in /etc/hosts.  
-
-Only the root user can modify /etc/hosts in a docker container because ownership changes in the build process aren't persisted during container initialization.
-
-If anyone knows of a better way to do this, please submit a pull request with a short explanation of the process you used.
-
-
-### 2. Bigcouch not picking up admin user created in local.ini config file. 
+#### 1. Bigcouch not picking up admin user created in local.ini config file. 
 
 I don't feel like spending too much time on this because bigcouch is ridiculously obsolete and I doubt CouchDB has this problem.  I don't reccomend running Bigcouch at all if you can help it, run CouchDB instead. 
-
--Joe

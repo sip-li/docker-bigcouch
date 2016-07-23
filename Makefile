@@ -1,6 +1,6 @@
 NS = vp
 NAME = bigcouch
-VERSION = 1.1.1
+VERSION = 1.3
 LOCAL_TAG = $(NS)/$(NAME):$(VERSION)
 
 REGISTRY = callforamerica
@@ -9,7 +9,7 @@ REMOTE_TAG = $(REGISTRY)/$(NAME):$(VERSION)
 
 GITHUB_REPO = docker-bigcouch
 DOCKER_REPO = bigcouch
-BUILD_BRANCH = master
+# BUILD_BRANCH = master
 
 .PHONY: all build test release shell run start stop rm rmi default
 
