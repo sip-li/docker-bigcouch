@@ -1,7 +1,7 @@
 kind: PersistentVolumeClaim
 apiVersion: v1
 metadata:
-  name: bigcouch-bigcouch-0
+  name: bigcouch-data-bigcouch-0
   labels:
     app: bigcouch
     project: valuphone
@@ -18,7 +18,7 @@ spec:
 kind: PersistentVolumeClaim
 apiVersion: v1
 metadata:
-  name: bigcouch-bigcouch-1
+  name: bigcouch-data-bigcouch-1
   labels:
     app: bigcouch
     project: valuphone
@@ -35,7 +35,7 @@ spec:
 kind: PersistentVolumeClaim
 apiVersion: v1
 metadata:
-  name: bigcouch-bigcouch-2
+  name: bigcouch-data-bigcouch-2
   labels:
     app: bigcouch
     project: valuphone

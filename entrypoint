@@ -26,8 +26,8 @@ if [ "$MOUNT_PERSISTENT_VOLUME" = true ]; then
     echo -e "Using Persistent Volume ...
     host: $(hostname)
     volume-mount-path: $VOLUME_MOUNT_PATH
-    bigcouch-data-path: $BIGCOUCH_DATA_PATH"
-
+    bigcouch-data-path: $BIGCOUCH_DATA_PATH
+    "
     mkdir -p $VOLUME_MOUNT_PATH
     ln -sf $VOLUME_MOUNT_PATH $BIGCOUCH_DATA_PATH
     chown -R bigcouch:bigcouch $VOLUME_MOUNT_PATH
@@ -44,6 +44,7 @@ tee /opt/bigcouch/etc/vm.args <<EOF
 -kernel inet_dist_listen_min 11500 inet_dist_listen_max 11999
 +Bd -noinput
 -couch_ini /opt/bigcouch/etc/default.ini /opt/bigcouch/etc/local.ini
+
 EOF
 chown bigcouch:bigcouch /opt/bigcouch/etc/vm.args
 chmod 0777 /opt/bigcouch/etc/vm.args
@@ -91,6 +92,7 @@ z=$BIGCOUCH_ZONES
 [log]
 file = /var/log/bigcouch/bigcouch.log
 level = $BIGCOUCH_LOG_LEVEL
+
 EOF
 
 
@@ -101,11 +103,11 @@ else
     echo "*** No Erlang Cookie Mounted! ***"
     echo insecure-cookie > ~/.erlang.cookie
 fi
-chown bigcouch:bigcouch /opt/bigcouch/.erlang.cookie
-chmod 0600 /opt/bigcouch/.erlang.cookie
+chown bigcouch:bigcouch ~/.erlang.cookie
+chmod 0600 ~/.erlang.cookie
 
 
-echo "Ensuring Permissions"
+echo "Ensuring correct permissions"
 chown -R bigcouch:bigcouch /var/lib/bigcouch
 chmod -R 0755 /opt/bigcouch /var/lib/bigcouch
 chmod 0600 ~/.erlang.cookie

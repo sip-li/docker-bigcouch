@@ -1,4 +1,4 @@
-apiVersion: apps/v1alpha
+apiVersion: apps/v1alpha1
 kind: PetSet
 metadata:
   name: bigcouch
@@ -71,15 +71,16 @@ spec:
         - name: bigcouch-admin-secret
           secret:
             secretName: bigcouch-admin-secret
-      volumeClaimTemplates:
-        - metadata:
-            name: bigcouch-data
-            annotations:
-              volume.alpha.kubernetes.io/storage-class: anything
-          spec:
-            accessModes:
-              - ReadWriteOnce
-            resources:
-              requests:
-                storage: 100Gi
       restartPolicy: Always
+  volumeClaimTemplates:
+    - metadata:
+        name: bigcouch-data
+        annotations:
+          volume.alpha.kubernetes.io/storage-class: anything
+      spec:
+        accessModes:
+          - ReadWriteOnce
+        resources:
+          requests:
+            storage: 100Gi
+      
