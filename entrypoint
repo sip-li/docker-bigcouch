@@ -48,7 +48,7 @@ link_erlang_cookie() {
 #     echo -n $PORT
 # }
 
-if [ -n "$KUBERNETES_HOSTNAME_FIX" == true ]; then
+if [ "$KUBERNETES_HOSTNAME_FIX" == true ]; then
     echo "Applying kubernetes hostname fix"
     ln -sf /opt/bigcouch/bin/hostname-fix /opt/bigcouch/bin/hostname
     chown bigcouch:bigcouch /opt/bigcouch/bin/hostname

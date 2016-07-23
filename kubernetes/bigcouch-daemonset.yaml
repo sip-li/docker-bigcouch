@@ -42,8 +42,8 @@ spec:
               value: 'true'
             - name: KUBERNETES_HOSTNAME_FIX
               value: 'false'
-            - name: BIND_INTERFACE
-              value: bond0
+            # - name: BIND_INTERFACE
+            #   value: bond0
           ports:
             - name: data
               protocol: TCP
