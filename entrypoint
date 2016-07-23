@@ -97,26 +97,30 @@ EOF
 
 
 if [ -f '/etc/secrets/erlang/cookie' ]; then
-    echo "Linking Erlang Cookie"
-    touch ~/.erlang.cookie
-    yes | cp -rf /etc/secrets/erlang/cookie ~/.erlang.cookie
+    echo "Cookie secret mounted ..."
+    # touch ~/.erlang.cookie
+    cookie=$(cat /etc/secrets/erlang/cookie)
+    # yes | cp -rf /etc/secrets/erlang/cookie ~/.erlang.cookie
 else
     echo "*** No Erlang Cookie Mounted! ***"
-    touch ~/.erlang.cookie
-    echo insecure-cookie > ~/.erlang.cookie
+    # touch ~/.erlang.cookie
+    cookie=insecure-cookie
+    # echo insecure-cookie > ~/.erlang.cookie
 fi
+echo "$cookie" > ~/.erlang.cookie
+
+
+echo "Ensuring correct permissions"
+chown -R bigcouch:bigcouch /var/lib/bigcouch
+chmod -R 0755 /opt/bigcouch /var/lib/bigcouch
+chown bigcouch:bigcouch ~/.erlang.cookie #|| true
+chmod 0600 ~/.erlang.cookie #|| true
 
 echo "\nDEBUG: ***"
 echo "user: $(whoami)"
 echo "home: $HOME\n"
 ls -la ~/
 echo "***\n"
-
-echo "Ensuring correct permissions"
-chown -R bigcouch:bigcouch /var/lib/bigcouch
-chown bigcouch:bigcouch ~/.erlang.cookie
-chmod -R 0755 /opt/bigcouch /var/lib/bigcouch
-chmod 0600 ~/.erlang.cookie
 
 
 cd ~
