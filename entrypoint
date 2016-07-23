@@ -102,6 +102,7 @@ if [ -f '/etc/secrets/erlang/cookie' ]; then
     yes | cp -rf /etc/secrets/erlang/cookie ~/.erlang.cookie
 else
     echo "*** No Erlang Cookie Mounted! ***"
+    touch ~/.erlang.cookie
     echo insecure-cookie > ~/.erlang.cookie
 fi
 
