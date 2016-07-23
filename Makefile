@@ -22,6 +22,12 @@ build:
 	@docker build -t $(LOCAL_TAG) --rm .
 	$(MAKE) tag
 
+load-pvs:
+	kubectl create -f kubernetes/bigcouch-pvs.yaml
+
+load-pvcs:
+	kubectl create -f kubernetes/bigcouch-pvcs.yaml
+
 retest:
 	-kubectl delete petset bigcouch
 	-kubectl delete po bigcouch-0
