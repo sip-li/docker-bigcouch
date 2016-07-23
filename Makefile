@@ -22,6 +22,18 @@ build:
 	@docker build -t $(LOCAL_TAG) --rm .
 	$(MAKE) tag
 
+retest:
+	-kubectl delete petset bigcouch
+	-kubectl delete po bigcouch-0
+	-kubectl delete po bigcouch-1
+	-kubectl delete pv -l app=bigcouch
+	-kubectl delete pvc -l app=bigcouch
+	sleep 10
+	kubectl create -f kubernetes/bigcouch-pvs.yaml
+	kubectl create -f kubernetes/bigcouch-pvcs.yaml
+	kubectl create -f kubernetes/bigcouch-petset.yaml
+	kubectl get po --watch
+
 tag:
 	@docker tag -f $(LOCAL_TAG) $(REMOTE_TAG)
 

@@ -64,6 +64,7 @@ spec:
               port: 5986
             initialDelaySeconds: 60
             timeoutSeconds: 15
+          imagePullPolicy: Always
       volumes:
         - name: erlang-cookie-secret
           secret:
