@@ -9,8 +9,8 @@ spec:
     metadata:
       labels:
         app: bigcouch
-        # project: valuphone
-        # environment: production
+        project: valuphone
+        environment: production
       annotations:
         pod.alpha.kubernetes.io/initialized: "true"
         pod.alpha.kubernetes.io/init-containers: '[
@@ -51,25 +51,25 @@ spec:
             - name: admin
               protocol: TCP
               containerPort: 5986
-          # resources:
-          #   requests:
-          #     cpu: 2
-          #     memory: 2G
-          #   # limits:
-          #   #   cpu: 2
-          #   #   memory: 4G
-          # readinessProbe:
-          #   httpGet:
-          #     path: /_stats
-          #     port: 5986
-          #   initialDelaySeconds: 60
-          #   timeoutSeconds: 15
-          # livenessProbe:
-          #   httpGet:
-          #     path: /_stats
-          #     port: 5986
-          #   initialDelaySeconds: 60
-          #   timeoutSeconds: 15
+          resources:
+            requests:
+              cpu: 2
+              memory: 2G
+            # limits:
+            #   cpu: 2
+            #   memory: 4G
+          readinessProbe:
+            httpGet:
+              path: /_stats
+              port: 5986
+            initialDelaySeconds: 60
+            timeoutSeconds: 15
+          livenessProbe:
+            httpGet:
+              path: /_stats
+              port: 5986
+            initialDelaySeconds: 60
+            timeoutSeconds: 15
           imagePullPolicy: Always
       volumes:
         - name: erlang-cookie-secret
@@ -90,4 +90,3 @@ spec:
         resources:
           requests:
             storage: 10Gi
-      

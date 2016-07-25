@@ -43,11 +43,13 @@ test-down:
 	-kubectl delete petset bigcouch
 	-kubectl delete po bigcouch-0
 	-kubectl delete po bigcouch-1
+	-kubectl delete po bigcouch-2
 	$(MAKE) clean-pvc
 
 test-up:
-	kubectl create -f kubernetes/bigcouch-pvs.yaml
-	kubectl create -f kubernetes/bigcouch-pvcs.yaml
+	$(MAKE) load-pvs
+	$(MAKE) load-pvcs
+	sleep 10
 	kubectl create -f kubernetes/bigcouch-petset.yaml
 	kubectl get po --watch
 

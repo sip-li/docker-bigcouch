@@ -62,13 +62,13 @@ fi
 echo "Rewriting local.ini file ..."
 [ -f /opt/bigcouch/etc/local.ini ] && rm -f /opt/bigcouch/etc/local.ini
 
+# [admins]
+# couch_admin = $BIGCOUCH_ADMIN_SECRET
+
 tee /opt/bigcouch/etc/local.ini <<EOF
 [couchdb]
 database_dir = $BIGCOUCH_DATA_PATH
 view_index_dir = $BIGCOUCH_DATA_PATH
-
-[admins]
-couch_admin = $BIGCOUCH_ADMIN_SECRET
 
 [chttpd]
 secret = $BIGCOUCH_ADMIN_SECRET
