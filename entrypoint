@@ -73,13 +73,13 @@ couch_admin = $BIGCOUCH_ADMIN_SECRET
 [chttpd]
 secret = $BIGCOUCH_ADMIN_SECRET
 require_valid_user = false
-port = 5986
+port = 5984
 bind_address = $BIGCOUCH_BIND_ADDR
 
 [httpd]
 secret = $BIGCOUCH_ADMIN_SECRET
 require_valid_user = false
-port = 5984
+port = 5986
 bind_address = $BIGCOUCH_BIND_ADDR
 
 [cluster]

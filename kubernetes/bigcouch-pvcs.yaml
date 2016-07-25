@@ -8,10 +8,10 @@ metadata:
     environment: production
 spec:
   accessModes:
-    - ReadWriteMany
+    - ReadWriteOnce
   resources:
     requests:
-      storage: 100Gi
+      storage: 10Gi
 
 ---
 
@@ -25,10 +25,10 @@ metadata:
     environment: production
 spec:
   accessModes:
-    - ReadWriteMany
+    - ReadWriteOnce
   resources:
     requests:
-      storage: 100Gi
+      storage: 10Gi
 
 ---
 
@@ -42,7 +42,7 @@ metadata:
     environment: production
 spec:
   accessModes:
-    - ReadWriteMany
+    - ReadWriteOnce
   resources:
     requests:
-      storage: 100Gi
+      storage: 10Gi

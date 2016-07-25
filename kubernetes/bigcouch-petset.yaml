@@ -4,21 +4,27 @@ metadata:
   name: bigcouch
 spec:
   serviceName: bigcouch
-  replicas: 3
+  replicas: 1
   template:
     metadata:
       labels:
         app: bigcouch
-        project: valuphone
-        environment: production
+        # project: valuphone
+        # environment: production
       annotations:
-        pod.alpha.kubernetes.io/initialized: 'true'
+        pod.alpha.kubernetes.io/initialized: "true"
         pod.alpha.kubernetes.io/init-containers: '[
           {
             "name": "register-service",
             "image": "callforamerica/init-register-service",
             "imagePullPolicy": "Always",
-            "args": ["bigcouch"]
+            "args": ["bigcouch"],
+            "volumeMounts": [
+              {
+                "name": "bigcouch-data",
+                "mountPath": "/mnt/bigcouch-data"
+              }
+            ]
           }
         ]'
     spec:
@@ -45,25 +51,25 @@ spec:
             - name: admin
               protocol: TCP
               containerPort: 5986
-          resources:
-            requests:
-              cpu: 2
-              memory: 2G
-            # limits:
-            #   cpu: 2
-            #   memory: 4G
-          readinessProbe:
-            httpGet:
-              path: /_stats
-              port: 5986
-            initialDelaySeconds: 60
-            timeoutSeconds: 15
-          livenessProbe:
-            httpGet:
-              path: /_stats
-              port: 5986
-            initialDelaySeconds: 60
-            timeoutSeconds: 15
+          # resources:
+          #   requests:
+          #     cpu: 2
+          #     memory: 2G
+          #   # limits:
+          #   #   cpu: 2
+          #   #   memory: 4G
+          # readinessProbe:
+          #   httpGet:
+          #     path: /_stats
+          #     port: 5986
+          #   initialDelaySeconds: 60
+          #   timeoutSeconds: 15
+          # livenessProbe:
+          #   httpGet:
+          #     path: /_stats
+          #     port: 5986
+          #   initialDelaySeconds: 60
+          #   timeoutSeconds: 15
           imagePullPolicy: Always
       volumes:
         - name: erlang-cookie-secret
@@ -83,5 +89,5 @@ spec:
           - ReadWriteOnce
         resources:
           requests:
-            storage: 100Gi
+            storage: 10Gi
       

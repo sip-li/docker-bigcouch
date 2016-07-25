@@ -8,9 +8,9 @@ metadata:
     environment: production
 spec:
   capacity:
-    storage: 100Gi
+    storage: 10Gi
   accessModes:
-    - ReadWriteMany
+    - ReadWriteOnce
   persistentVolumeReclaimPolicy: Retain
   glusterfs:
     endpoints: glusterfs
@@ -28,9 +28,9 @@ metadata:
     environment: production
 spec:
   capacity:
-    storage: 100Gi
+    storage: 10Gi
   accessModes:
-    - ReadWriteMany
+    - ReadWriteOnce
   persistentVolumeReclaimPolicy: Retain
   glusterfs:
     endpoints: glusterfs
@@ -48,9 +48,9 @@ metadata:
     environment: production
 spec:
   capacity:
-    storage: 100Gi
+    storage: 10Gi
   accessModes:
-    - ReadWriteMany
+    - ReadWriteOnce
   persistentVolumeReclaimPolicy: Retain
   glusterfs:
     endpoints: glusterfs

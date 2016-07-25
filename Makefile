@@ -28,17 +28,33 @@ load-pvs:
 load-pvcs:
 	kubectl create -f kubernetes/bigcouch-pvcs.yaml
 
-retest:
+clean-pvc:
+	-kubectl delete pv -l app=bigcouch
+	-kubectl delete pvc -l app=bigcouch
+
+patch-two:
+	kubectl patch petset bigcouch -p '{"spec": {"replicas": 2}}' 
+	kubectl get po --watch
+
+patch-three:
+	kubectl patch petset bigcouch -p '{"spec": {"replicas": 3}}' 
+
+test-down:
 	-kubectl delete petset bigcouch
 	-kubectl delete po bigcouch-0
 	-kubectl delete po bigcouch-1
-	-kubectl delete pv -l app=bigcouch
-	-kubectl delete pvc -l app=bigcouch
-	sleep 10
+	$(MAKE) clean-pvc
+
+test-up:
 	kubectl create -f kubernetes/bigcouch-pvs.yaml
 	kubectl create -f kubernetes/bigcouch-pvcs.yaml
 	kubectl create -f kubernetes/bigcouch-petset.yaml
 	kubectl get po --watch
+
+retest:
+	$(MAKE) test-down
+	sleep 10
+	$(MAKE) test-up
 
 tag:
 	@docker tag -f $(LOCAL_TAG) $(REMOTE_TAG)
@@ -46,8 +62,7 @@ tag:
 rebuild:
 	@docker build -t $(LOCAL_TAG) --rm --no-cache .
 
-test:
-	@rspec ./tests/*.rb
+
 
 commit:
 	@git add -A .
