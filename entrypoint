@@ -1,8 +1,11 @@
 #!/bin/bash
 
-BIGCOUCH_SASL_LOGLEVEL=${BIGCOUCH_SASL_LOGLEVEL:-error}
 BIGCOUCH_THREADS=${BIGCOUCH_THREADS:-25}
+
+# options: debug info warning error none
 BIGCOUCH_LOG_LEVEL=${BIGCOUCH_LOG_LEVEL:-info}
+BIGCOUCH_LOG_FILE=${BIGCOUCH_LOG_FILE:-}
+BIGCOUCH_LOG_SASL=${BIGCOUCH_LOG_SASL:-false}
 
 BIGCOUCH_DATA_PATH=${BIGCOUCH_DATA_PATH:-/var/lib/bigcouch/data}
 BIGCOUCH_BIND_ADDR=${BIGCOUCH_BIND_ADDR:-0.0.0.0}
@@ -14,10 +17,6 @@ BIGCOUCH_REPLICAS=${BIGCOUCH_REPLICAS:-3}
 BIGCOUCH_ZONES=${BIGCOUCH_ZONES:-1}
 
 set -e
-set -x
-
-mkdir -p /tmp/bigcouch
-chown bigcouch:bigcouch /tmp/bigcouch
 
 
 if [ "$MOUNT_PERSISTENT_VOLUME" = true ]; then
@@ -38,16 +37,12 @@ fi
 echo "Writing vm.args file ..."
 tee /opt/bigcouch/etc/vm.args <<EOF
 -name bigcouch@$(hostname -f)
--sasl errlog_type $BIGCOUCH_SASL_LOGLEVEL
 +K true
 +A $BIGCOUCH_THREADS
 -kernel inet_dist_listen_min 11500 inet_dist_listen_max 11999
 +Bd -noinput
 -couch_ini /opt/bigcouch/etc/default.ini /opt/bigcouch/etc/local.ini
-
 EOF
-chown bigcouch:bigcouch /opt/bigcouch/etc/vm.args
-chmod 0777 /opt/bigcouch/etc/vm.args
 
 
 if [ -f '/etc/secrets/bigcouch/secret' ]; then
@@ -62,8 +57,6 @@ fi
 echo "Rewriting local.ini file ..."
 [ -f /opt/bigcouch/etc/local.ini ] && rm -f /opt/bigcouch/etc/local.ini
 
-# [admins]
-# couch_admin = $BIGCOUCH_ADMIN_SECRET
 
 tee /opt/bigcouch/etc/local.ini <<EOF
 [couchdb]
@@ -71,13 +64,13 @@ database_dir = $BIGCOUCH_DATA_PATH
 view_index_dir = $BIGCOUCH_DATA_PATH
 
 [chttpd]
-secret = $BIGCOUCH_ADMIN_SECRET
+;secret = $BIGCOUCH_ADMIN_SECRET
 require_valid_user = false
 port = 5984
 bind_address = $BIGCOUCH_BIND_ADDR
 
 [httpd]
-secret = $BIGCOUCH_ADMIN_SECRET
+;secret = $BIGCOUCH_ADMIN_SECRET
 require_valid_user = false
 port = 5986
 bind_address = $BIGCOUCH_BIND_ADDR
@@ -90,22 +83,18 @@ n=$BIGCOUCH_REPLICAS
 z=$BIGCOUCH_ZONES
 
 [log]
-file = /var/log/bigcouch/bigcouch.log
 level = $BIGCOUCH_LOG_LEVEL
-
+file = $BIGCOUCH_LOG_FILE
+include_sasl = $BIGCOUCH_LOG_SASL
 EOF
 
 
 if [ -f '/etc/secrets/erlang/cookie' ]; then
     echo "Cookie secret mounted ..."
-    # touch ~/.erlang.cookie
     cookie=$(cat /etc/secrets/erlang/cookie)
-    # yes | cp -rf /etc/secrets/erlang/cookie ~/.erlang.cookie
 else
     echo "*** No Erlang Cookie Mounted! ***"
-    # touch ~/.erlang.cookie
     cookie=insecure-cookie
-    # echo insecure-cookie > ~/.erlang.cookie
 fi
 echo "$cookie" > ~/.erlang.cookie
 
@@ -113,15 +102,14 @@ echo "$cookie" > ~/.erlang.cookie
 echo "Ensuring correct permissions"
 chown -R bigcouch:bigcouch /var/lib/bigcouch
 chmod -R 0755 /opt/bigcouch /var/lib/bigcouch
-chown bigcouch:bigcouch ~/.erlang.cookie #|| true
-chmod 0600 ~/.erlang.cookie #|| true
 
-echo "\nDEBUG: ***"
-echo "user: $(whoami)"
-echo "home: $HOME\n"
-ls -la ~/
-echo "***\n"
+chown bigcouch:bigcouch ~/.erlang.cookie
+chmod 0600 ~/.erlang.cookie 
 
+chown bigcouch:bigcouch /opt/bigcouch/etc/vm.args
+chmod 0777 /opt/bigcouch/etc/vm.args
+
+chown bigcouch:bigcouch /tmp/bigcouch
 
 cd ~
     echo "Starting Bigcouch ..."

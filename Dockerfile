@@ -18,8 +18,6 @@ RUN     /tmp/setup.sh
 
 COPY    entrypoint /usr/bin/entrypoint
 
-ENV     KUBERNETES_PERSISTENT_VOLUME=true
-
 VOLUME  ["/var/lib/bigcouch"]
 
 EXPOSE  4369 5984 5986 11500-11999
