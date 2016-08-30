@@ -33,8 +33,6 @@ spec:
           env:
             - name: KUBERNETES_USE_PERSISTENT_VOLUME
               value: 'true'
-            - name: KUBERNETES_HOSTNAME_FIX
-              value: 'false'
           ports:
             - name: data
               protocol: TCP

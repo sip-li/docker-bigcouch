@@ -30,7 +30,7 @@ spec:
     spec:
       containers:
         - name: bigcouch
-          image: callforamerica/bigcouch:petset-experiment
+          image: callforamerica/bigcouch
           imagePullPolicy: Always
           volumeMounts:
             - name: erlang-cookie-secret
