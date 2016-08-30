@@ -36,16 +36,13 @@ spec:
             - name: erlang-cookie-secret
               readOnly: true
               mountPath: /etc/secrets/erlang
-            - name: bigcouch-admin-secret
-              readOnly: true
-              mountPath: /etc/secrets/bigcouch
             - name: bigcouch-data
               mountPath: /mnt/bigcouch-data
           env:
             - name: MOUNT_PERSISTENT_VOLUME
               value: 'true'
             - name: BIGCOUCH_LOG_LEVEL
-              value: info             
+              value: info
           ports:
             - name: data
               protocol: TCP
@@ -77,9 +74,6 @@ spec:
         - name: erlang-cookie-secret
           secret:
             secretName: erlang-cookie
-        - name: bigcouch-admin-secret
-          secret:
-            secretName: bigcouch-admin-secret
       restartPolicy: Always
   volumeClaimTemplates:
     - metadata:

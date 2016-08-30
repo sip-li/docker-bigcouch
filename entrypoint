@@ -1,22 +1,24 @@
 #!/bin/bash
 
-BIGCOUCH_THREADS=${BIGCOUCH_THREADS:-25}
+set -e
+
+. ~/.bashrc
+
+: ${BIGCOUCH_THREADS:=25}
 
 # options: debug info warning error none
-BIGCOUCH_LOG_LEVEL=${BIGCOUCH_LOG_LEVEL:-info}
-BIGCOUCH_LOG_FILE=${BIGCOUCH_LOG_FILE:-}
-BIGCOUCH_LOG_SASL=${BIGCOUCH_LOG_SASL:-false}
+: ${BIGCOUCH_LOG_LEVEL:=info}
+: ${BIGCOUCH_LOG_FILE:=}
+: ${BIGCOUCH_LOG_SASL:=false}
 
-BIGCOUCH_DATA_PATH=${BIGCOUCH_DATA_PATH:-/var/lib/bigcouch/data}
-BIGCOUCH_BIND_ADDR=${BIGCOUCH_BIND_ADDR:-0.0.0.0}
+: ${BIGCOUCH_DATA_PATH:=/var/lib/bigcouch/data}
+: ${BIGCOUCH_BIND_ADDR:=0.0.0.0}
 
-BIGCOUCH_SHARDS=${BIGCOUCH_SHARDS:-1}
-BIGCOUCH_READ_QUORUM=${BIGCOUCH_READ_QUORUM:-1}
-BIGCOUCH_WRITE_QUORUM=${BIGCOUCH_WRITE_QUORUM:-1}
-BIGCOUCH_REPLICAS=${BIGCOUCH_REPLICAS:-3}
-BIGCOUCH_ZONES=${BIGCOUCH_ZONES:-1}
-
-set -e
+: ${BIGCOUCH_SHARDS:=1}
+: ${BIGCOUCH_READ_QUORUM:=1}
+: ${BIGCOUCH_WRITE_QUORUM:=1}
+: ${BIGCOUCH_REPLICAS:=3}
+: ${BIGCOUCH_ZONES:=1}
 
 
 if [ "$MOUNT_PERSISTENT_VOLUME" = true ]; then
@@ -29,8 +31,6 @@ if [ "$MOUNT_PERSISTENT_VOLUME" = true ]; then
     "
     mkdir -p $VOLUME_MOUNT_PATH
     ln -sf $VOLUME_MOUNT_PATH $BIGCOUCH_DATA_PATH
-    chown -R bigcouch:bigcouch $VOLUME_MOUNT_PATH
-    chmod -R 0755 $VOLUME_MOUNT_PATH
 fi
 
 
@@ -45,32 +45,18 @@ tee /opt/bigcouch/etc/vm.args <<EOF
 EOF
 
 
-if [ -f '/etc/secrets/bigcouch/secret' ]; then
-    BIGCOUCH_ADMIN_SECRET=$(cat /etc/secrets/bigcouch/secret)
-    echo "Admin secret successfuly read from secret volume file ..."
-else
-    BIGCOUCH_ADMIN_SECRET=insecure-default
-    echo "*** No secret file found at /etc/secrets/bigcouch/secret, using insecure backup ***"
-fi
-
-
 echo "Rewriting local.ini file ..."
-[ -f /opt/bigcouch/etc/local.ini ] && rm -f /opt/bigcouch/etc/local.ini
-
-
 tee /opt/bigcouch/etc/local.ini <<EOF
 [couchdb]
 database_dir = $BIGCOUCH_DATA_PATH
 view_index_dir = $BIGCOUCH_DATA_PATH
 
 [chttpd]
-;secret = $BIGCOUCH_ADMIN_SECRET
 require_valid_user = false
 port = 5984
 bind_address = $BIGCOUCH_BIND_ADDR
 
 [httpd]
-;secret = $BIGCOUCH_ADMIN_SECRET
 require_valid_user = false
 port = 5986
 bind_address = $BIGCOUCH_BIND_ADDR
@@ -89,33 +75,34 @@ include_sasl = $BIGCOUCH_LOG_SASL
 EOF
 
 
+echo "Reading erlang cookie ..."
 if [ -f '/etc/secrets/erlang/cookie' ]; then
     echo "Cookie secret mounted ..."
-    cookie=$(cat /etc/secrets/erlang/cookie)
+    ERLANG_COOKIE=$(cat /etc/secrets/erlang/cookie)
 else
     echo "*** No Erlang Cookie Mounted! ***"
-    cookie=insecure-cookie
+    ERLANG_COOKIE=insecure-cookie
 fi
-echo "$cookie" > ~/.erlang.cookie
+echo "$ERLANG_COOKIE" > ~/.erlang.cookie
 
 
-echo "Ensuring correct permissions"
-chown -R bigcouch:bigcouch /var/lib/bigcouch
+echo "Ensuring correct permissions ..."
+
+chown -R bigcouch:bigcouch \
+    ~ \
+    /var/lib/bigcouch \
+    /opt/bigcouch/etc \
+
 chmod -R 0755 /opt/bigcouch /var/lib/bigcouch
-
-chown bigcouch:bigcouch ~/.erlang.cookie
+chmod -R 0777 /opt/bigcouch/etc/*
 chmod 0600 ~/.erlang.cookie 
 
-chown bigcouch:bigcouch /opt/bigcouch/etc/vm.args
-chmod 0777 /opt/bigcouch/etc/vm.args
-
-chown bigcouch:bigcouch /tmp/bigcouch
 
 cd ~
     echo "Starting Bigcouch ..."
     export BEAM=beam
-    export PATH=/opt/bigcouch/bin:/opt/bigcouch/erts-5.8.2/bin:$PATH
+    export PATH=/opt/bigcouch/erts-5.8.2/bin:$PATH
     export ERL_CRASH_DUMP=$(date +%s)_bigcouch_erl_crash.dump
     export ERL_LIBS=/opt/bigcouch/lib:$ERL_LIBS
     
-    su bigcouch -c 'exec /opt/bigcouch/bin/bigcouch'
+    su bigcouch -c 'exec /opt/bigcouch/bin/bigcouch 2>&1'

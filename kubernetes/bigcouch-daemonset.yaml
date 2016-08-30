@@ -9,18 +9,13 @@ spec:
       labels:
         app: bigcouch
         project: valuphone
-        role: document-db
+        environment: production
     spec:
-      # nodeSelector: 
-      #   kubernetes.io/hostname: adeno.valuphone.com
       hostNetwork: true
       volumes:
         - name: erlang-cookie-secret
           secret:
             secretName: erlang-cookie
-        - name: bigcouch-admin-secret
-          secret:
-            secretName: bigcouch-admin-secret
         - name: bigcouch-data
           persistentVolumeClaim:
             claimName: bigcouch-data
@@ -32,18 +27,13 @@ spec:
             - name: erlang-cookie-secret
               readOnly: true
               mountPath: /etc/secrets/erlang
-            - name: bigcouch-admin-secret
-              readOnly: true
-              mountPath: /etc/secrets/bigcouch
             - name: bigcouch-data
               mountPath: /mnt/bigcouch-data
           env:
-            - name: MOUNT_PERSISTENT_VOLUME
+            - name: KUBERNETES_USE_PERSISTENT_VOLUME
               value: 'true'
-            # - name: KUBERNETES_HOSTNAME_FIX
-            #   value: 'false'
-            # - name: BIND_INTERFACE
-            #   value: bond0
+            - name: KUBERNETES_HOSTNAME_FIX
+              value: 'false'
           ports:
             - name: data
               protocol: TCP
@@ -58,16 +48,16 @@ spec:
             # limits:
             #   cpu: 
             #   memory: 
-          # readinessProbe:
-          #   httpGet:
-          #     path: /_stats
-          #     port: 5986
-          #   initialDelaySeconds: 30
-          #   timeoutSeconds: 5
-          # livenessProbe:
-          #   httpGet:
-          #     path: /_stats
-          #     port: 5986
-          #   initialDelaySeconds: 30
-          #   timeoutSeconds: 5
+          readinessProbe:
+            httpGet:
+              path: /_stats
+              port: 5986
+            initialDelaySeconds: 60
+            timeoutSeconds: 15
+          livenessProbe:
+            httpGet:
+              path: /_stats
+              port: 5986
+            initialDelaySeconds: 60
+            timeoutSeconds: 15
       restartPolicy: Always

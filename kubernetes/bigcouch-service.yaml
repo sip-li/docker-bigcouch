@@ -4,12 +4,12 @@ metadata:
   name: bigcouch
   annotations:
     service.alpha.kubernetes.io/tolerate-unready-endpoints: "true"
-  labels:
-    app: bigcouch
 spec:
   clusterIP: None
   selector:
     app: bigcouch
+    project: valuphone
+    environment: production
   ports:
     - name: data
       protocol: TCP

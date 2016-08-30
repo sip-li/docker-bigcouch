@@ -1,6 +1,8 @@
 NS = vp
 NAME = bigcouch
-VERSION = 1.3
+APP_VERSION = 1.1.1
+IMAGE_VERSION = 2.0
+VERSION = $(APP_VERSION)-$(IMAGE_VERSION)
 LOCAL_TAG = $(NS)/$(NAME):$(VERSION)
 
 REGISTRY = callforamerica
@@ -9,7 +11,8 @@ REMOTE_TAG = $(REGISTRY)/$(NAME):$(VERSION)
 
 GITHUB_REPO = docker-bigcouch
 DOCKER_REPO = bigcouch
-# BUILD_BRANCH = master
+BUILD_BRANCH = master
+
 
 .PHONY: all build test release shell run start stop rm rmi default
 
@@ -59,19 +62,14 @@ retest:
 	$(MAKE) test-up
 
 tag:
-	@docker tag -f $(LOCAL_TAG) $(REMOTE_TAG)
+	@docker tag $(LOCAL_TAG) $(REMOTE_TAG)
 
 rebuild:
 	@docker build -t $(LOCAL_TAG) --rm --no-cache .
 
-
-
 commit:
 	@git add -A .
 	@git commit
-
-deploy:
-	@docker push $(REMOTE_TAG)
 
 push:
 	@git push origin master
@@ -80,10 +78,16 @@ shell:
 	@docker exec -ti $(NAME) /bin/bash
 
 run:
-	@docker run -it --rm --name $(NAME) -e "KUBERNETES_HOSTNAME_FIX=true" --entrypoint bash $(LOCAL_TAG)
+	@docker run -it -h $(NAME) --rm --name $(NAME) --entrypoint bash $(LOCAL_TAG)
 
 launch:
-	@docker run -d --name $(NAME) $(LOCAL_TAG)
+	@docker run -d -h $(NAME) --name $(NAME) -p "5984:5984" -p "5986:5986" $(LOCAL_TAG)
+
+launch-net:
+	@docker run -d -h $(NAME).default.pod.cluster.local --name $(NAME) --network=local --net-alias $(NAME).default.pod.cluster.local $(LOCAL_TAG)
+
+create-network:
+	@docker network create -d bridge local
 
 logs:
 	@docker logs $(NAME)
@@ -94,6 +98,9 @@ logsf:
 start:
 	@docker start $(NAME)
 
+kill:
+	@docker kill $(NAME)
+
 stop:
 	@docker stop $(NAME)
 
@@ -103,5 +110,33 @@ rm:
 rmi:
 	@docker rmi $(LOCAL_TAG)
 	@docker rmi $(REMOTE_TAG)
+
+kube-deploy:
+	@kubectl create -f kubernetes/$(NAME)-deployment.yaml --record
+
+kube-deploy-edit:
+	@kubectl edit deployment/$(NAME)
+	$(NAME) kube-rollout-status
+
+kube-deploy-rollback:
+	@kubectl rollout undo deployment/$(NAME)
+
+kube-rollout-status:
+	@kubectl rollout status deployment/$(NAME)
+
+kube-rollout-history:
+	@kubectl rollout history deployment/$(NAME)
+
+kube-delete-deployment:
+	@kubectl delete deployment/$(NAME)
+
+kube-deploy-service:
+	@kubectl create -f kubernetes/$(NAME)-service.yaml
+
+kube-delete-service:
+	@kubectl delete svc $(NAME)
+
+kube-replace-service:
+	@kubectl replace -f kubernetes/$(NAME)-service.yaml
 
 default: build

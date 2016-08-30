@@ -4,25 +4,19 @@ metadata:
   name: bigcouch
 spec:
   replicas: 1
-  selector:
-    app: bigcouch
-    project: valuphone
   template:
     metadata:
       name: bigcouch
       labels:
         app: bigcouch
         project: valuphone
-        role: document-db
+        environment: production
     spec:
       hostNetwork: true
       volumes:
         - name: erlang-cookie-secret
           secret:
             secretName: erlang-cookie
-        - name: bigcouch-admin-secret
-          secret:
-            secretName: bigcouch-admin-secret
         - name: bigcouch-data
           persistentVolumeClaim:
             claimName: bigcouch-data
@@ -34,9 +28,6 @@ spec:
             - name: erlang-cookie-secret
               readOnly: true
               mountPath: /etc/secrets/erlang
-            - name: bigcouch-admin-secret
-              readOnly: true
-              mountPath: /etc/secrets/bigcouch
             - name: bigcouch-data
               mountPath: /mnt/bigcouch-data
           env:
@@ -44,8 +35,6 @@ spec:
               value: 'true'
             - name: KUBERNETES_HOSTNAME_FIX
               value: 'false'
-            - name: BIND_INTERFACE
-              value: bond0
           ports:
             - name: data
               protocol: TCP
@@ -72,6 +61,4 @@ spec:
               port: 5986
             initialDelaySeconds: 30
             timeoutSeconds: 5
-        # - name: dns
-        #   image: callforamerica/go-dnsmasq
       restartPolicy: Always
