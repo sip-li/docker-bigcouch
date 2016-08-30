@@ -84,7 +84,7 @@ launch:
 	@docker run -d -h $(NAME) --name $(NAME) -p "5984:5984" -p "5986:5986" $(LOCAL_TAG)
 
 launch-net:
-	@docker run -d -h $(NAME).default.pod.cluster.local --name $(NAME) --network=local --net-alias $(NAME).default.pod.cluster.local $(LOCAL_TAG)
+	@docker run -d -h $(NAME).local --name $(NAME) --network=local --net-alias $(NAME).local $(LOCAL_TAG)
 
 create-network:
 	@docker network create -d bridge local
