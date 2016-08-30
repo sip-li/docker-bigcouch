@@ -111,32 +111,25 @@ rmi:
 	@docker rmi $(LOCAL_TAG)
 	@docker rmi $(REMOTE_TAG)
 
-kube-deploy:
-	@kubectl create -f kubernetes/$(NAME)-deployment.yaml --record
+kube-deploy-petset:
+	@kubectl create -f kubernetes/$(NAME)-petset.yaml
 
-kube-deploy-edit:
-	@kubectl edit deployment/$(NAME)
-	$(NAME) kube-rollout-status
+kube-edit-petset:
+	@kubectl edit petset/$(NAME)
 
-kube-deploy-rollback:
-	@kubectl rollout undo deployment/$(NAME)
-
-kube-rollout-status:
-	@kubectl rollout status deployment/$(NAME)
-
-kube-rollout-history:
-	@kubectl rollout history deployment/$(NAME)
-
-kube-delete-deployment:
-	@kubectl delete deployment/$(NAME)
+kube-delete-petset:
+	@kubectl delete petset/$(NAME)
 
 kube-deploy-service:
 	@kubectl create -f kubernetes/$(NAME)-service.yaml
+	@kubectl create -f kubernetes/$(NAME)-service-balanced.yaml
 
 kube-delete-service:
 	@kubectl delete svc $(NAME)
+	@kubectl delete svc $(NAME)bal
 
 kube-replace-service:
 	@kubectl replace -f kubernetes/$(NAME)-service.yaml
+	@kubectl replace -f kubernetes/$(NAME)-service-balanced.yaml
 
 default: build
