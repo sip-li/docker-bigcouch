@@ -13,7 +13,7 @@ spec:
     - ReadWriteOnce
   persistentVolumeReclaimPolicy: Retain
   glusterfs:
-    endpoints: glusterfs
+    endpoints: glusterfs-cluster
     path: gv0
 
 ---
@@ -33,7 +33,7 @@ spec:
     - ReadWriteOnce
   persistentVolumeReclaimPolicy: Retain
   glusterfs:
-    endpoints: glusterfs
+    endpoints: glusterfs-cluster
     path: gv0
 
 ---
@@ -53,5 +53,5 @@ spec:
     - ReadWriteOnce
   persistentVolumeReclaimPolicy: Retain
   glusterfs:
-    endpoints: glusterfs
+    endpoints: glusterfs-cluster
     path: gv0

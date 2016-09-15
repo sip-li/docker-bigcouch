@@ -61,13 +61,13 @@ spec:
             httpGet:
               path: /_stats
               port: 5986
-            initialDelaySeconds: 60
-            timeoutSeconds: 15
+            initialDelaySeconds: 10
+            timeoutSeconds: 10
           livenessProbe:
             httpGet:
               path: /_stats
               port: 5986
-            initialDelaySeconds: 60
+            initialDelaySeconds: 10
             timeoutSeconds: 15
           imagePullPolicy: Always
       volumes:

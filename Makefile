@@ -23,13 +23,7 @@ checkout:
 
 build:
 	@docker build -t $(LOCAL_TAG) --rm .
-	$(MAKE) tag
-
-load-pvs:
-	kubectl create -f kubernetes/bigcouch-pvs.yaml
-
-load-pvcs:
-	kubectl create -f kubernetes/bigcouch-pvcs.yaml
+	@$(MAKE) tag
 
 clean-pvc:
 	-kubectl delete pv -l app=bigcouch
@@ -111,6 +105,15 @@ rmi:
 	@docker rmi $(LOCAL_TAG)
 	@docker rmi $(REMOTE_TAG)
 
+kube-deploy-pvs:
+	@kubectl create -f kubernetes/bigcouch-pvs.yaml
+
+kube-deploy-pvcs:
+	@kubectl create -f kubernetes/bigcouch-pvcs.yaml
+
+kube-deploy:
+	@$(MAKE) kube-deploy-petset
+	
 kube-deploy-petset:
 	@kubectl create -f kubernetes/$(NAME)-petset.yaml
 
@@ -128,8 +131,30 @@ kube-delete-service:
 	@kubectl delete svc $(NAME)
 	@kubectl delete svc $(NAME)bal
 
-kube-replace-service:
-	@kubectl replace -f kubernetes/$(NAME)-service.yaml
-	@kubectl replace -f kubernetes/$(NAME)-service-balanced.yaml
+kube-apply-service:
+	@kubectl apply -f kubernetes/$(NAME)-service.yaml
+	@kubectl apply -f kubernetes/$(NAME)-service-balanced.yaml
+
+kube-load-pvs:
+	@kubectl create -f kubernetes/bigcouch-pvs.yaml
+
+kube-load-pvcs:
+	@kubectl create -f kubernetes/bigcouch-pvcs.yaml
+
+kube-delete-pvs:
+	@kubectl delete -f kubernetes/bigcouch-pvs.yaml
+
+kube-delete-pvcs:
+	@kubectl delete -f kubernetes/bigcouch-pvcs.yaml
+
+kube-logsf:
+	@kubectl logs -f $(shell kubectl get po | grep $(NAME) | cut -d' ' -f1)
+
+kube-logsft:
+	@kubectl logs -f --tail=25 $(shell kubectl get po | grep $(NAME) | cut -d' ' -f1)
+
+kube-shell:
+	@kubectl exec -ti $(shell kubectl get po | grep $(NAME) | cut -d' ' -f1) -- bash
+
 
 default: build
