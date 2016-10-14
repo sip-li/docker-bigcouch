@@ -22,44 +22,47 @@ checkout:
 	@git checkout $(BUILD_BRANCH)
 
 build:
-	@docker build -t $(LOCAL_TAG) --rm .
+	@docker build -t $(LOCAL_TAG) --force-rm .
 	@$(MAKE) tag
+	@$(MAKE) dclean
 
 clean-pvc:
-	-kubectl delete pv -l app=bigcouch
-	-kubectl delete pvc -l app=bigcouch
+	@-kubectl delete pv -l app=bigcouch
+	@-kubectl delete pvc -l app=bigcouch
 
 patch-two:
-	kubectl patch petset bigcouch -p '{"spec": {"replicas": 2}}' 
-	kubectl get po --watch
+	@kubectl patch petset bigcouch -p '{"spec": {"replicas": 2}}' 
+	@kubectl get po --watch
 
 patch-three:
-	kubectl patch petset bigcouch -p '{"spec": {"replicas": 3}}' 
+	@kubectl patch petset bigcouch -p '{"spec": {"replicas": 3}}' 
 
 test-down:
-	-kubectl delete petset bigcouch
-	-kubectl delete po bigcouch-0
-	-kubectl delete po bigcouch-1
-	-kubectl delete po bigcouch-2
-	$(MAKE) clean-pvc
+	@-kubectl delete petset bigcouch
+	@-kubectl delete po bigcouch-0
+	@-kubectl delete po bigcouch-1
+	@-kubectl delete po bigcouch-2
+	@$(MAKE) clean-pvc
 
 test-up:
-	$(MAKE) load-pvs
-	$(MAKE) load-pvcs
-	sleep 10
-	kubectl create -f kubernetes/bigcouch-petset.yaml
-	kubectl get po --watch
+	@$(MAKE) load-pvs
+	@$(MAKE) load-pvcs
+	@sleep 10
+	@kubectl create -f kubernetes/bigcouch-petset.yaml
+	@kubectl get po --watch
 
 retest:
-	$(MAKE) test-down
-	sleep 10
-	$(MAKE) test-up
+	@$(MAKE) test-down
+	@sleep 10
+	@$(MAKE) test-up
 
 tag:
 	@docker tag $(LOCAL_TAG) $(REMOTE_TAG)
 
 rebuild:
-	@docker build -t $(LOCAL_TAG) --rm --no-cache .
+	@docker build -t $(LOCAL_TAG) --force-rm --no-cache .
+	@$(MAKE) tag
+	@$(MAKE) dclean
 
 commit:
 	@git add -A .
@@ -104,6 +107,14 @@ rm:
 rmi:
 	@docker rmi $(LOCAL_TAG)
 	@docker rmi $(REMOTE_TAG)
+
+rmf:
+	@docker rm -f $(NAME)
+
+dclean:
+	@-docker ps -aq | gxargs -I{} docker rm {} 2> /dev/null || true
+	@-docker images -f dangling=true -q | xargs docker rmi
+	@-docker volume ls -f dangling=true -q | xargs docker volume rm
 
 kube-deploy-pvs:
 	@kubectl create -f kubernetes/bigcouch-pvs.yaml

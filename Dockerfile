@@ -1,31 +1,25 @@
-FROM centos:6
+FROM callforamerica/debian
 
 MAINTAINER joe <joe@valuphone.com>
 
-LABEL   os="linux" \
-        os.distro="centos" \
-        os.version="6"
+ARG     BIGCOUCH_VERSION
 
-LABEL   lang.name="erlang" \
-        lang.version="R14B01"
+ENV     BIGCOUCH_VERSION=${BIGCOUCH_VERSION:-0.4.2} \
+        ERLANG_VERSION=R14B01
 
-LABEL   app.name="bigcouch" \
-        app.version="1.1.1"
+LABEL   lang.erlang.version=$ERLANG_VERSION
+LABEL   app.bigcouch.version=$BIGCOUCH_VERSION
 
-ENV     ERLANG_VERSION=R14B01 \
-        BIGCOUCH_VERSION=1.1.1
+ENV     HOME=/opt/bigcouch
 
-ENV     HOME=/opt/bigcouch \
-        PATH=/opt/bigcouch/bin:$PATH
+COPY    build.sh /tmp/build.sh
+RUN     /tmp/build.sh
 
-COPY    setup.sh /tmp/setup.sh
-RUN     /tmp/setup.sh
-
-COPY    entrypoint /usr/bin/entrypoint
+COPY    entrypoint /
 
 ENV     BIGCOUCH_LOG_LEVEL=info
 
-VOLUME  ["/var/lib/bigcouch"]
+VOLUME  ["/volumes/bigcouch"]
 
 EXPOSE  4369 5984 5986 11500-11999
 
@@ -33,4 +27,5 @@ EXPOSE  4369 5984 5986 11500-11999
 
 WORKDIR /opt/bigcouch
 
-CMD     ["/usr/bin/entrypoint"]
+ENTRYPOINT  ["/dumb-init", "--"]
+CMD         ["/entrypoint"]
