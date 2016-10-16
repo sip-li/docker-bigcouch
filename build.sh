@@ -37,8 +37,14 @@ echo "Installing deps ..."
 apt-get install -y curl
 
 
+# computers are retarted
+ln -s /dev/null /etc/inittab
+
 echo "Installing bigcouch ..."
 apt-get -t squeeze -y --force-yes install bigcouch=$apt_bigcouch_version
+
+# ^^
+rm -f /etc/inittab
 
 
 echo "adding bin directory to path ..."
@@ -57,29 +63,54 @@ export ERL_LIBS=\$HOME/lib:\$ERL_LIBS
 EOF
 
 
+# this script handles annoying post-init tasks automatically,
+tee ~/init-node.sh <<'EOF'
+#!/bin/bash
+
+: ${BIGCOUCH_ADMIN_USER:=admin}
+: ${BIGCOUCH_ADMIN_PASS:=secret}
+
+this="$0"
+host=http://localhost:5984
+
+function finish
+{
+    shred -u $this > /dev/null 2>&1
+}
+
+function host_up
+{
+    local host="$1"
+    curl -sS $host --connect-timeout 2 --head --fail > /dev/null 2>&1
+}
+
+function create_admin
+{
+    local host="$1"
+    curl -sS -X PUT -d "\"$BIGCOUCH_ADMIN_PASS\"" $host/_config/admins/${BIGCOUCH_ADMIN_USER} > /dev/null 2>&1
+}
+
+until host_up $host
+do
+    sleep 1
+done
+
+create_admin $host
+
+rm -f ~/.init-node > /dev/null 2>&1
+trap finish EXIT
+sleep 1
+EOF
+chmod +x $_
+touch ~/.init-node
+
+
 echo "Creating directories for $app ..."
-mkdir -p /var/lib/bigcouch /volumes/$app
-    # /var/log/bigcouch \
-    # /tmp/bigcouch
+mkdir -p /var/lib/$app /volumes/$app /data/$app
 
 
 echo "Setting Ownership & Permissions ..."
-# chown -R bigcouch:bigcouch \
-#     ~ \
-#     /opt/bigcouch \
-#     /var/lib/bigcouch \
-#     /var/log/bigcouch \
-#     /tmp/bigcouch
-chown -R $user:$user /var/lib/bigcouch /volumes/$app
-
-# chmod -R 0775 /opt/bigcouch
-# chmod -R 0755 /var/lib/bigcouch
-# chmod -R 0777 /var/log/bigcouch
-
-# find /opt/bigcouch/etc -type f -exec chmod 0755 {} \;
-# find /opt/bigcouch/etc -type d -exec chmod 0644 {} \;
-
-# chmod +x ~/.bashrc
+chown -R $user:$user ~ /var/lib/$app /volumes/$app /data/$app
 
 
 echo "Cleaning up ..."

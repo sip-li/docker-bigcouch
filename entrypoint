@@ -122,10 +122,10 @@ chown -R $user:$user \
 
 cd ~
     log "Starting $app ..."
-    # export BEAM=beam
-    # export PATH=/opt/bigcouch/erts-5.8.2/bin:$PATH
     export ERL_CRASH_DUMP=$(date +%s)_${app}_crash.dump
-    # export ERL_LIBS=/opt/bigcouch/lib:$ERL_LIBS
-    [ ! -f ~/.cluster-initialized ] && gosu $user /tmp/post-init.sh &
+
+    # this script handles annoying post-init tasks automatically,
+    # and deletes ~/.init-node
+    [[ -f ~/.init-node ]] && ~/init-node.sh > /dev/null 2>&1 &
     
     exec gosu $user bigcouch 2>&1
