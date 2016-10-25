@@ -3,7 +3,7 @@ kind: Service
 metadata: 
   name: bigcouch
   annotations:
-    service.alpha.kubernetes.io/tolerate-unready-endpoints: "true"
+    service.alpha.kubernetes.io/tolerate-unready-endpoints: 'true'
 spec:
   clusterIP: None
   selector:
@@ -11,9 +11,9 @@ spec:
     project: valuphone
     environment: production
   ports:
-    - name: data
-      protocol: TCP
-      port: 5984
-    - name: admin
-      protocol: TCP
-      port: 5986
+  - name: data
+    protocol: TCP
+    port: 5984
+  - name: admin
+    protocol: TCP
+    port: 5986

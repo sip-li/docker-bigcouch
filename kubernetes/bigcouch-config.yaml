@@ -1,0 +1,18 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: bigcouch-config
+  labels:
+    app: bigcouch
+    project: valuphone
+    environment: production
+data:
+  persistent-storage-enabled: 'true'
+  erlang.threads: 25
+  bigcouch.log-level: info
+  bigcouch.log-color: 'true'
+  bigcouch.require-valid-user: 'false'
+  bigcouch.shards: 4
+  bigcouch.replicas: 3
+  bigcouch.read-quorum: 1
+  bigcouch.write-quorum: 2

@@ -15,6 +15,9 @@ Now using a register-service init-container for automatic registration with the 
 
 ## Issues
 
-#### 1. Bigcouch not picking up admin user created in local.ini config file. 
+### Docker.hub automated builds don't tolerate COPY or ADD to root /
 
-I don't feel like spending too much time on this because bigcouch is ridiculously obsolete and I doubt CouchDB has this problem.  I don't reccomend running Bigcouch at all if you can help it, run CouchDB instead. 
+I've added a comment to the Dockerfile noting this and for now am copying to
+/tmp and then copying to / in the next statement.
+
+ref: https://forums.docker.com/t/automated-docker-build-fails/22831/28

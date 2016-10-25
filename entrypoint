@@ -14,7 +14,6 @@ fi
 
 # options: debug info warning error none
 : ${BIGCOUCH_LOG_LEVEL:=info}
-: ${BIGCOUCH_LOG_FILE:=}
 
 : ${BIGCOUCH_DATA_PATH:=/data/$app}
 : ${BIGCOUCH_BIND_ADDR:=0.0.0.0}
@@ -107,7 +106,7 @@ z=$BIGCOUCH_ZONES
 
 [log]
 level = $BIGCOUCH_LOG_LEVEL
-file = $BIGCOUCH_LOG_FILE
+file = 
 EOF
 
 

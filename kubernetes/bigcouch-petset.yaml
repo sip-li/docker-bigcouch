@@ -12,77 +12,145 @@ spec:
         project: valuphone
         environment: production
       annotations:
-        pod.alpha.kubernetes.io/initialized: "true"
-        pod.alpha.kubernetes.io/init-containers: '[
-          {
-            "name": "register-service",
-            "image": "callforamerica/init-register-service",
-            "imagePullPolicy": "Always",
-            "args": ["bigcouch"],
-            "volumeMounts": [
-              {
-                "name": "bigcouch-data",
-                "mountPath": "/mnt/bigcouch-data"
-              }
-            ]
-          }
-        ]'
+        pod.alpha.kubernetes.io/initialized: 'true'
+        pod.alpha.kubernetes.io/init-containers: |-
+          [
+            {
+              "name": "register-service",
+              "image": "callforamerica/init-register-service",
+              "imagePullPolicy": "Always",
+              "args": ["bigcouch"],
+              "volumeMounts": [
+                {
+                  "name": "bigcouch-data",
+                  "mountPath": "/volumes/bigcouch"
+                }
+              ],
+              "env": [
+                {
+                  "name": "BIGCOUCH_ADMIN_USER",
+                  "valueFrom": {
+                    "secretKeyRef": {
+                      "name": "bigcouch-creds",
+                      "key": "bigcouch.user"
+                    }
+                  }
+                },
+                {
+                  "name": "BIGCOUCH_ADMIN_PASS",
+                  "valueFrom": {
+                    "secretKeyRef": {
+                      "name": "bigcouch-creds",
+                      "key": "bigcouch.pass"
+                    }
+                  }
+                }
+              ]
+            }
+          ]
     spec:
       containers:
-        - name: bigcouch
-          image: callforamerica/bigcouch
-          imagePullPolicy: Always
-          volumeMounts:
-            - name: erlang-cookie-secret
-              readOnly: true
-              mountPath: /etc/secrets/erlang
-            - name: bigcouch-data
-              mountPath: /mnt/bigcouch-data
-          env:
-            - name: MOUNT_PERSISTENT_VOLUME
-              value: 'true'
-            - name: BIGCOUCH_LOG_LEVEL
-              value: info
-          ports:
-            - name: data
-              protocol: TCP
-              containerPort: 5984
-            - name: admin
-              protocol: TCP
-              containerPort: 5986
-          resources:
-            requests:
-              cpu: 2
-              memory: 2G
-            # limits:
-            #   cpu: 2
-            #   memory: 4G
-          readinessProbe:
-            httpGet:
-              path: /_stats
-              port: 5986
-            initialDelaySeconds: 10
-            timeoutSeconds: 10
-          livenessProbe:
-            httpGet:
-              path: /_stats
-              port: 5986
-            initialDelaySeconds: 10
-            timeoutSeconds: 15
-          imagePullPolicy: Always
-      volumes:
+      - name: bigcouch
+        image: callforamerica/bigcouch
+        imagePullPolicy: Always
+        volumeMounts:
         - name: erlang-cookie-secret
-          secret:
-            secretName: erlang-cookie
-      restartPolicy: Always
-  volumeClaimTemplates:
-    - metadata:
-        name: bigcouch-data
-        annotations:
-          volume.alpha.kubernetes.io/storage-class: anything
-      spec:
-        accessModes:
-          - ReadWriteOnce
+          readOnly: true
+          mountPath: /etc/secrets/erlang
+        - name: bigcouch-data
+          mountPath: /mnt/bigcouch-data
+        env:
+        - name: PERSISTENT_STORAGE_ENABLED
+          valueFrom:
+            configMapKeyRef:
+              name: bigcouch-config
+              key: persistent-storage-enabled
+        - name: ERLANG_THREADS
+          valueFrom:
+            configMapKeyRef:
+              name: bigcouch-config
+              key: erlang.threads
+        - name: BIGCOUCH_LOG_LEVEL
+          valueFrom:
+            configMapKeyRef:
+              name: bigcouch-config
+              key: bigcouch.log-level
+        - name: BIGCOUCH_REQUIRE_VALID_USER
+          valueFrom:
+            configMapKeyRef:
+              name: bigcouch-config
+              key: bigcouch.require-valid-user
+        - name: BIGCOUCH_SHARDS
+          valueFrom:
+            configMapKeyRef:
+              name: bigcouch-config
+              key: bigcouch.shards
+        - name: BIGCOUCH_REPLICAS
+          valueFrom:
+            configMapKeyRef:
+              name: bigcouch-config
+              key: bigcouch.replicas
+        - name: BIGCOUCH_READ_QUORUM
+          valueFrom:
+            configMapKeyRef:
+              name: bigcouch-config
+              key: bigcouch.read-quorum
+        - name: BIGCOUCH_WRITE_QUORUM
+          valueFrom:
+            configMapKeyRef:
+              name: bigcouch-config
+              key: bigcouch.write-quorum
+        - name: BIGCOUCH_ADMIN_USER
+          valueFrom:
+            secretKeyRef:
+              name: bigcouch-creds
+              key: bigcouch.user
+        - name: BIGCOUCH_ADMIN_PASS
+          valueFrom:
+            secretKeyRef:
+              name: bigcouch-creds
+              key: bigcouch.pass
+        - name: ERLANG_COOKIE
+          valueFrom:
+            secretKeyRef:
+              name: erlang-cookie
+              key: erlang.cookie
+        ports:
+        - name: data
+          protocol: TCP
+          containerPort: 5984
+        - name: admin
+          protocol: TCP
+          containerPort: 5986
         resources:
           requests:
-            storage: 100Gi
+            cpu: 2
+            memory: 2Gi
+          limits:
+            cpu: 3
+            memory: 2Gi
+        readinessProbe:
+          httpGet:
+            path: /_stats
+            port: 5986
+          initialDelaySeconds: 10
+          timeoutSeconds: 10
+        livenessProbe:
+          httpGet:
+            path: /_stats
+            port: 5986
+          initialDelaySeconds: 10
+          timeoutSeconds: 15
+        imagePullPolicy: Always
+      restartPolicy: Always
+  volumeClaimTemplates:
+  - metadata:
+      name: bigcouch-data
+      annotations:
+        volume.alpha.kubernetes.io/storage-class: anything
+    spec:
+      accessModes:
+      - ReadWriteOnce
+      resources:
+        requests:
+          storage: 100Gi

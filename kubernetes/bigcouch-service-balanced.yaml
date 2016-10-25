@@ -1,16 +1,16 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: bigcouchbal
+  name: bigcouch-bal
 spec:
   selector:
     app: bigcouch
     project: valuphone
     environment: production
   ports:
-    - name: data
-      protocol: TCP
-      port: 5984
-    - name: admin
-      protocol: TCP
-      port: 5986
+  - name: data
+    protocol: TCP
+    port: 5984
+  - name: admin
+    protocol: TCP
+    port: 5986
